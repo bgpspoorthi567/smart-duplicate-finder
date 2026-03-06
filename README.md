@@ -1,33 +1,45 @@
-#  AI-Powered Smart Duplicate File Detection System
+# Smart Duplicate Finder
 
-##  Overview
-An intelligent duplicate detection system using hashing, perceptual image comparison, and semantic similarity techniques.
+Smart Duplicate Finder is a simple web application that helps detect duplicate files and similar images.
 
-##  Features
-- SHA-256 File Hashing
-- Perceptual Image Hashing
-- Transformer-based Text Similarity
-- Duplicate Delete / Move Option
-- Storage Saved Analytics
-- Streamlit Web Interface
+Sometimes we store the same files multiple times without realizing it. This tool helps identify those duplicates and similar images so users can manage their storage more efficiently.
 
-##  Tech Stack
+## Features
+
+- Detect duplicate files of any type using hashing
+- Detect visually similar images
+- Show similarity percentage for images
+- Upload multiple files at once
+- Simple and clean web interface
+
+## Tech Stack
+
 - Python
-- Streamlit
-- Transformers
-- Hashlib
+- Flask
+- HTML
+- CSS
+- Pillow
 - ImageHash
-- OS & File Handling
 
-##  How to Run
+## How It Works
 
-1. Install dependencies:
-   pip install -r requirements.txt
+For general files, the application uses **MD5 hashing** to detect exact duplicate files.
 
-2. Run the app:
-   streamlit run app.py
+For images, the application uses **perceptual hashing (pHash)** to compare visual similarity between images. This allows the system to detect images that may be resized, compressed, or slightly modified.
 
-## Future Improvements
-- Video/Audio duplicate detection
-- ML-based adaptive thresholds
-- Cloud storage integration
+## Live Demo
+
+You can try the project here:
+
+https://spoorthi0810.pythonanywhere.com
+
+## Installation
+
+Clone the repository:  https://github.com/bgpspoorthi567/smart-duplicate-finder.git
+
+
+## Author
+
+**BATTULA GURUPRASAD SPOORTHI**  
+B.Tech Computer Science and Engineering  
+VIT Amaravati
