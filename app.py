@@ -1,119 +1,31 @@
-import streamlit as st
+from flask import Flask, render_template, request
 import os
-
 from core.scanner import scan_folder
-from core.hashing import sha256_hash
-from core.image_similarity import compute_phash, is_similar
-from core.text_similarity import compute_text_similarity
-from core.analytics import calculate_storage_saved
-from core.file_actions import delete_file, move_file
-from core.adaptive_threshold import get_threshold
 
+app = Flask(__name__)
 
-st.set_page_config(layout="wide")
-st.title("Smart Duplicate File Finder")
+UPLOAD_FOLDER = "uploads"
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-folder = st.text_input("Enter folder path to scan", ".")
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
 
-if st.button("Run Scan"):
+@app.route("/", methods=["GET", "POST"])
+def index():
 
-    if not os.path.exists(folder):
-        st.error("Invalid folder path.")
-        st.stop()
-
-    files = scan_folder(folder)
     duplicates = []
 
-    # -----------------------------
-    # Exact Duplicate Detection
-    # -----------------------------
-    st.subheader("Exact Duplicates")
-    hash_map = {}
+    if request.method == "POST":
 
-    for file in files:
-        file_hash = sha256_hash(file)
-        if not file_hash:
-            continue
+        files = request.files.getlist("files")
 
-        if file_hash in hash_map:
-            duplicates.append(file)
-            st.write(file)
-        else:
-            hash_map[file_hash] = file
+        for file in files:
+            path = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
+            file.save(path)
 
-    # -----------------------------
-    # Image Similarity Detection
-    # -----------------------------
-    st.subheader("Similar Images")
-    image_hashes = {}
+        duplicates = scan_folder(app.config["UPLOAD_FOLDER"])
 
-    for file in files:
-        if file.lower().endswith((".png", ".jpg", ".jpeg")):
-            phash = compute_phash(file)
-            if not phash:
-                continue
+    return render_template("index.html", duplicates=duplicates)
 
-            for existing_hash, existing_file in image_hashes.items():
-                if is_similar(phash, existing_hash):
-                    duplicates.append(file)
-                    st.write(f"{existing_file}  <->  {file}")
-                    break
-            else:
-                image_hashes[phash] = file
-
-    # -----------------------------
-    # Text Similarity Detection
-    # -----------------------------
-    st.subheader("Similar Text Files")
-    texts = {}
-    similarity_scores = []
-
-    for file in files:
-        if file.lower().endswith(".txt"):
-            try:
-                content = open(file, encoding="utf-8", errors="ignore").read()
-            except:
-                continue
-
-            for old_file, old_content in texts.items():
-                score = compute_text_similarity(old_content, content)
-                similarity_scores.append(score)
-                threshold = get_threshold(similarity_scores)
-
-                if score > threshold:
-                    duplicates.append(file)
-                    st.write(f"{old_file}  <->  {file}  (Score: {round(score,2)})")
-                    break
-            else:
-                texts[file] = content
-
-    # -----------------------------
-    # Storage Analysis
-    # -----------------------------
-    if duplicates:
-        saved = calculate_storage_saved(duplicates)
-        st.subheader("Storage Analysis")
-        st.write(f"Recoverable Storage: {round(saved, 2)} MB")
-    else:
-        st.info("No duplicates found.")
-
-    # -----------------------------
-    # Cleanup Section
-    # -----------------------------
-    if duplicates:
-        st.subheader("Cleanup Options")
-
-        for i, file in enumerate(duplicates):
-            col1, col2 = st.columns(2)
-
-            with col1:
-                if st.button("Delete", key=f"delete_{i}"):
-                    delete_file(file)
-                    st.success(f"Deleted {file}")
-
-            with col2:
-                if st.button("Move to Backup", key=f"move_{i}"):
-                    move_file(file)
-                    st.success(f"Moved {file} to duplicates_backup")
-
-    st.success("Scan completed.")
+if __name__ == "__main__":
+    app.run(debug=True)

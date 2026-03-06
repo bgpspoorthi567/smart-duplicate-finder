@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Smart Duplicate Finder</title>
+</head>
+
+<body>
+
+<h1>Smart Duplicate Finder</h1>
+
+<form method="POST" enctype="multipart/form-data">
+
+<input type="file" name="files" multiple>
+
+<button type="submit">Scan Files</button>
+
+</form>
+
+<h2>Duplicate Files</h2>
+
+<ul>
+
+{% for file in duplicates %}
+
+<li>{{file}}</li>
+
+{% endfor %}
+
+</ul>
+
+</body>
+</html>
